@@ -27,7 +27,8 @@ void setup() {
   pinMode(pumpPin, LOW);        // Start turned off
 
   WiFi.begin(ssid, password);
-
+  WiFi.setSleepMode(WIFI_NONE_SLEEP);
+  
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.println("Connecting to WiFi..");
@@ -60,6 +61,7 @@ void setup() {
 
   client.subscribe("pump_water");
   client.subscribe("measure_soil");
+  client.subscribe("update_status");
 
 }
 
@@ -97,6 +99,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
   } else if (String(topic) == "measure_soil") {
     measure_soil();
+  } else if (String(topic) == "update_status") {
+    update_status();
   }
 
   Serial.println();
@@ -107,6 +111,10 @@ void measure_soil() {
   int sensorValue = analogRead(A0);
   String val = String(map(sensorValue, 0, 1023, 0, 255));
   client.publish("soil_value", preparePayload(val));
+}
+
+void update_status(){
+  client.publish("status_message", "");
 }
 
 int pumpStatus() {
